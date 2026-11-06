@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Sign-Up-Billing-Automation</title>
+        <link rel="stylesheet" href="style.css">
+</head>
+    <body>
+    <form id="sign-up-form">
+            <p style="padding-left:30%"><b>Sign Up Here!!</b></p>
+            <div class="sign-up">
+                <label for="name">Name:</label>
+                <input id="name" type="text" name="name" required>
+            </div>
+            <div class="sign-up">
+                <label for="mail">Email:</label>
+                <input id="mail" type="email" name="email" required>
+            </div>
+            <div class="sign-up">
+                <label for="pass">Password:</label>
+                <input id="pass" type="password" name="password" required>
+            </div>
+            <div style="margin-top: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Choose user Role:</label>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <label><input type="radio" name="role" value="user" checked onchange="toggleAdminCode()"> User</label>
+                    <label><input type="radio" name="role" value="admin" onchange="toggleAdminCode()"> Admin</label>
+                </div>
+            </div>
+            <div id="admin-code-field" style="display: none; margin-top: 15px;">
+                <label for="admin-code" style="display: block; margin-bottom: 5px;">Company's Secret Code:</label>
+                <input id="admin-code" type="text" name="admin_code" placeholder="Enter Secret Key" style="border: none; border-bottom: 2px solid black; outline: none; width: 100%; background: transparent; height: 25px;">
+            </div>
+            <button id="btn-signup" type="submit">Sign Up</button>
+            <div style="margin-top: 20px;">
+                <p style="display:inline"> Already have Acoount ?</p>
+                <a href="index.html" style="color:blue">Login Here</a>
+            </div>
+            <p id="message" style="color: red;"></p>
+        </form>    
+        <script src="script.js"></script>
+    <script>
+        function toggleAdminCode() {
+            const adminRadio = document.querySelector('input[name="role"][value="admin"]');
+            const adminCodeField = document.getElementById("admin-code-field");
+            const adminCodeInput = document.getElementById("admin-code");
+            if (adminRadio && adminRadio.checked) {
+                adminCodeField.style.display = "block";
+                adminCodeInput.required = true;
+            } else {
+                adminCodeField.style.display = "none";
+                adminCodeInput.required = false;
+                adminCodeInput.value = "";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard — StoreX Cloud</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
+    /* ---- SIDEBAR ---- */
+    .sidebar {
+      width: 250px;
+      background: #1a1a2e;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar-brand {
+      padding: 20px 15px 14px;
+      text-align: center;
+      border-bottom: 1px solid #2e2e50;
+      flex-shrink: 0;
+    }
+    .sidebar-brand h3 { font-size: 20px; color: #ffffff; letter-spacing: 1px; font-weight: 700; }
+    .sidebar-brand span { font-size: 12px; color: #bbbbdd; display: block; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
+
+    .sidebar nav { flex-grow: 1; padding-top: 10px; }
+
+    /* Top-level nav items */
+    .nav-item {
+      display: block;
+      color: #ffffff;
+      padding: 13px 24px;
+      font-size: 15px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: #2a2a4a; }
+    .nav-item.active-nav { background: #16213e; color: #66aaff; border-left-color: #66aaff; font-weight: bold; }
+
+    /* Dashboard group */
+    .nav-group-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      padding: 13px 24px;
+      font-size: 15px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .nav-group-label:hover { background: #2a2a4a; }
+    .nav-group-label.active-parent { color: #66aaff; }
+    .nav-group-label .arrow { font-size: 11px; transition: transform 0.2s; }
+    .nav-group-label.open .arrow { transform: rotate(90deg); }
+
+    /* Sub-items */
+    .nav-sub {
+      display: none;
+      background: #111125;
+    }
+    .nav-sub.open { display: block; }
+    .nav-sub-item {
+      display: block;
+      color: #aaaacc;
+      padding: 10px 24px 10px 36px;
+      font-size: 14px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .nav-sub-item:hover { background: #1e1e3a; color: #fff; }
+    .nav-sub-item.active-nav { color: #66aaff; border-left-color: #66aaff; font-weight: bold; background: #1a2540; }
+
+    /* Logout bar */
+    .sidebar-footer { padding: 12px 16px; border-top: 1px solid #2e2e50; flex-shrink: 0; }
+    .logout-btn {
+      display: block;
+      width: 100%;
+      background: #c0392b;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+    }
+    .logout-btn:hover { background: #96281b; }
+
+    /* ---- MAIN CONTENT ---- */
+    .content { flex-grow: 1; overflow-y: auto; background: #f4f4f4; display: flex; flex-direction: column; }
+
+    .section { display: none; flex-direction: column; flex-grow: 1; height: 100%; }
+    .section.active-section { display: flex; }
+
+    /* Slim page title bar for dashboard pages */
+    .page-title-bar {
+      background: #1a1a2e;
+      color: #ffffff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .page-title-bar h2 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+
+    /* iframe fills remaining space */
+    .bi-frame {
+      flex-grow: 1;
+      border: none;
+      display: block;
+      width: 100%;
+      min-height: 0;
+    }
+
+    /* Regular sections (non-dashboard) */
+    .regular-section { padding: 30px; }
+
+    /* Centered section headers */
+    .section-header { text-align: center; margin-bottom: 28px; }
+    .section-header h2 { font-size: 26px; color: #1a1a2e; font-weight: 700; }
+    .section-header p  { color: #555; font-size: 15px; margin-top: 8px; }
+
+    /* Plans header row */
+    .plans-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .plans-header-text h2 { font-size: 26px; color: #1a1a2e; font-weight: 700; }
+    .plans-header-text p  { color: #555; font-size: 15px; margin-top: 6px; }
+
+    .card-white { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; border: 1px solid #ddd; text-align: left; font-size: 14px; }
+    th { background: #eee; font-weight: 600; }
+    tbody tr:hover { background: #f9f9f9; }
+
+    /* ---- PLAN CARDS ---- */
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 10px; }
+    .plan-card {
+      background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 22px; display: flex; flex-direction: column; border-top: 4px solid #1a1a2e;
+    }
+    .plan-card h3 { font-size: 18px; color: #222; margin-bottom: 4px; }
+    .plan-card .price { font-size: 26px; color: #0056b3; font-weight: bold; margin: 6px 0; }
+    .plan-card .price span { font-size: 13px; color: #888; font-weight: normal; }
+    .plan-card .meta { font-size: 12px; color: #888; margin-bottom: 10px; }
+    .plan-card ul { list-style: none; padding: 0; flex-grow: 1; margin: 10px 0 16px; }
+    .plan-card ul li { font-size: 13px; color: #555; margin-bottom: 6px; }
+    .plan-card ul li::before { content: "✔ "; color: #28a745; font-weight: bold; }
+
+    .card-actions { display: flex; gap: 8px; }
+    .btn-edit    { flex:1; background:#0056b3; color:white; border:none; padding:9px; border-radius:5px; cursor:pointer; font-size:14px; font-weight:600; }
+    .btn-edit:hover { background:#003d80; }
+    .btn-archive { flex:1; background:#dc3545; color:white; border:none; padding:9px; border-radius:5px; cursor:pointer; font-size:14px; font-weight:600; }
+    .btn-archive:hover { background:#b02a37; }
+    .btn-activate { background:#28a745; color:white; border:none; padding:9px; border-radius:5px; cursor:pointer; width:100%; font-size:14px; font-weight:600; }
+    .btn-activate:hover { background:#1e7e34; }
+
+    .btn-primary { background:#1a1a2e; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-size:14px; font-weight:600; }
+    .btn-primary:hover { background:#0056b3; }
+    .btn-cancel  { background:#aaa; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:14px; }
+    .btn-cancel:hover { background:#888; }
+
+    /* Add Plan Form */
+    .add-plan-form { display:none; background:white; border-radius:10px; padding:28px; box-shadow:0 2px 10px rgba(0,0,0,0.1); margin-bottom:28px; border-left:5px solid #0056b3; }
+    .add-plan-form h3 { margin-bottom:20px; color:#1a1a2e; font-size:18px; }
+    .form-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:14px; }
+    .form-group { display:flex; flex-direction:column; flex:1; min-width:180px; }
+    .form-group label { font-size:13px; font-weight:600; color:#444; margin-bottom:5px; }
+    .form-group input, .form-group select, .form-group textarea { padding:9px 12px; border:1px solid #ccc; border-radius:5px; font-size:14px; }
+    .form-group textarea { resize:vertical; min-height:80px; }
+    .form-hint { font-size:11px; color:#888; margin-top:3px; }
+    .form-actions { display:flex; gap:12px; margin-top:6px; }
+    #planFormMsg { font-size:13px; font-weight:bold; margin-top:10px; }
+
+    .archived-badge { display:inline-block; background:#ffc107; color:#333; font-size:11px; font-weight:bold; padding:2px 8px; border-radius:20px; margin-bottom:8px; }
+    .empty-state { text-align:center; padding:50px 20px; color:#888; font-size:15px; }
+
+    /* Failed Payments status badge */
+    .badge-failed { background:#dc3545; color:white; font-size:11px; padding:2px 8px; border-radius:12px; font-weight:600; }
+
+    /* ---- EDIT PLAN MODAL ---- */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:white; border-radius:10px; padding:30px; width:460px; max-width:95vw; box-shadow:0 8px 30px rgba(0,0,0,0.2); }
+    .modal-box h3 { font-size:20px; color:#1a1a2e; margin-bottom:20px; border-bottom:2px solid #f0f0f0; padding-bottom:12px; }
+    .modal-box label { display:block; font-size:13px; font-weight:600; color:#444; margin-bottom:5px; margin-top:12px; }
+    .modal-box input, .modal-box select { width:100%; padding:10px 12px; border:1px solid #ccc; border-radius:5px; font-size:14px; }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+    #editPlanMsg { font-size:13px; font-weight:bold; margin-top:10px; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h3>StoreX Cloud</h3>
+      <span>Admin Portal</span>
+    </div>
+
+    <nav>
+      <!-- Dashboard group with sub-pages -->
+      <div class="nav-group-label open" id="grp-dashboard" onclick="toggleDashboardGroup()">
+        <span>Dashboard</span>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="nav-sub open" id="sub-dashboard">
+        <span class="nav-sub-item active-nav" id="nav-overview"       onclick="showDashPage('overview',      'Overview',           this)">Overview</span>
+        <span class="nav-sub-item"             id="nav-plan-analytics" onclick="showDashPage('plan-analytics', 'Plan Analytics',     this)">Plan Analytics</span>
+        <span class="nav-sub-item"             id="nav-cust-analytics" onclick="showDashPage('cust-analytics', 'Customer Analytics', this)">Customer Analytics</span>
+        <span class="nav-sub-item"             id="nav-payments-dash"  onclick="showDashPage('payments-dash',  'Payments Overview',  this)">Payments</span>
+      </div>
+
+      <span class="nav-item" id="nav-plans"          onclick="showSection('plans')">Plans</span>
+      <span class="nav-item" id="nav-archived_plans" onclick="showSection('archived_plans')">Archived Plans</span>
+      <span class="nav-item" id="nav-failed_payments" onclick="showSection('failed_payments')">Failed Payments</span>
+      <span class="nav-item" id="nav-audit_logs"     onclick="showSection('audit_logs')">Audit Logs</span>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="content">
+
+    <!-- ===== DASHBOARD SECTION (iframe fills full height) ===== -->
+    <div id="dashboard" class="section active-section">
+      <div class="page-title-bar">
+        <h2 id="dashPageTitle">Overview</h2>
+      </div>
+      <!-- REPLACE each src URL with your actual page-specific embed URL from Power BI -->
+      <!-- Instructions: Power BI Service → open report → click tab → copy URL → paste here -->
+      <iframe id="biFrame" class="bi-frame"
+        src="https://app.powerbi.com/reportEmbed?reportId=0b6f50a3-bb29-4da4-a3e7-f797c759c6c8&autoAuth=true&ctid=4c49cc3b-7d9d-464e-8fc8-a10f91d8117a"
+        allowFullScreen="true">
+      </iframe>
+    </div>
+
+    <!-- ===== PLANS ===== -->
+    <div id="plans" class="section">
+      <div class="regular-section">
+        <div class="plans-header">
+          <div class="plans-header-text">
+            <h2>Subscription Plans</h2>
+            <p>Manage all active plans — add, edit, or archive plans</p>
+          </div>
+          <button class="btn-primary" onclick="toggleAddPlanForm()">+ Add New Plan</button>
+        </div>
+
+        <div class="add-plan-form" id="addPlanForm">
+          <h3>Add New Plan</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Plan Name *</label>
+              <input type="text" id="newPlanName" placeholder="e.g. Pro Max">
+            </div>
+            <div class="form-group">
+              <label>Price (Rs.) *</label>
+              <input type="number" id="newPlanPrice" placeholder="e.g. 999" min="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Billing Interval *</label>
+              <select id="newPlanInterval">
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="yearly">Yearly</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Trial Days</label>
+              <input type="number" id="newPlanTrial" placeholder="0" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select id="newPlanStatus">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label>Features (one per line) *</label>
+              <textarea id="newPlanFeatures" placeholder="Unlimited users&#10;24/7 Support&#10;5GB Storage"></textarea>
+              <span class="form-hint">Enter each feature on a new line</span>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="submitNewPlan()">Submit Plan</button>
+            <button class="btn-cancel"  onclick="toggleAddPlanForm()">Cancel</button>
+          </div>
+          <p id="planFormMsg"></p>
+        </div>
+
+        <div id="plansGrid" class="plans-grid"></div>
+      </div>
+    </div>
+
+    <!-- ===== ARCHIVED PLANS ===== -->
+    <div id="archived_plans" class="section">
+      <div class="regular-section">
+        <div class="section-header">
+          <h2>Archived Plans</h2>
+          <p>These plans are currently inactive. Click "Activate Plan" to restore any plan back to active status.</p>
+        </div>
+        <div id="archivedPlansGrid" class="plans-grid"></div>
+      </div>
+    </div>
+
+    <!-- ===== FAILED PAYMENTS ===== -->
+    <div id="failed_payments" class="section">
+      <div class="regular-section">
+        <div class="section-header">
+          <h2>Failed Payments</h2>
+          <p>Payments that failed during processing. Use this to identify customers who need follow-up or retry.</p>
+        </div>
+        <div class="card-white">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Payment Ref</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="failedPaymentsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== AUDIT LOGS ===== -->
+    <div id="audit_logs" class="section">
+      <div class="regular-section">
+        <div class="section-header">
+          <h2>Audit Log Viewer</h2>
+          <p>Complete system history — every admin and customer action is recorded here with timestamp and user details.</p>
+        </div>
+        <div class="card-white">
+          <table>
+            <thead>
+              <tr>
+                <th>Date &amp; Time</th>
+                <th>Action</th>
+                <th>Entity Type</th>
+                <th>Entity ID</th>
+                <th>User</th>
+              </tr>
+            </thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+
+  <!-- ===== EDIT PLAN MODAL ===== -->
+  <div class="modal-overlay" id="editPlanModal">
+    <div class="modal-box">
+      <h3>Edit Plan</h3>
+      <input type="hidden" id="editPlanId">
+      <label>Plan Name</label>
+      <input type="text" id="editPlanName" placeholder="Plan name">
+      <label>Billing Interval</label>
+      <select id="editPlanInterval">
+        <option value="monthly">Monthly</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="yearly">Yearly</option>
+        <option value="weekly">Weekly</option>
+      </select>
+      <label>Trial Days</label>
+      <input type="number" id="editPlanTrial" min="0">
+      <label>Status</label>
+      <select id="editPlanStatus">
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <div class="modal-actions">
+        <button class="btn-cancel"  onclick="closeEditModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitEditPlan()">Save Changes</button>
+      </div>
+      <p id="editPlanMsg"></p>
+    </div>
+  </div>
+
+  <script src="admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            Billing-Automation
+        </title>
+        
+        <link rel="stylesheet" href="style.css">
+</head>
+    <body>
+    <form id="sign-in-form">
+            <P style="font-size:25px; padding-left: 45px;">Welcome Back! 👋 </P>
+            <div class="sign-in">
+                <label for="mail">Email:</label>
+                <input id="mail" type="email" name="mail" placeholder="Enter Email" required>
+            </div>
+            <div class="sign-in">
+                <label for="pass">Password:</label>
+                <input id="pass" type="password" name="password" placeholder="Enter Password" required>
+            </div>
+            <div style="margin-top: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Choose user Role:</label>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <label><input type="radio" name="role" value="user" checked> User</label>
+                    <label><input type="radio" name="role" value="admin"> Admin</label>
+                </div>
+            </div>
+            <button id="btn-login" type="submit">Sign in</button>
+            <div style="margin-top: 20px;">
+                <p style="display:inline"> Don't have Acoount ?</p>
+                <a href="signup.html" style="color:blue">Sign UP</a>
+            </div>
+            <p id="message" style="color: red;"></p>
+        </form>
+        <script src="script.js"></script>
+</body>
+</html>

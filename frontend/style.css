@@ -1,0 +1,35 @@
+#sign-in-form,#sign-up-form{
+    width: 300px;
+    min-height: 350px;
+    height: auto;
+    padding: 20px;
+    margin-left:37%;
+    margin-top: 10%;
+    border: 2px solid black;
+    border-radius: 5px;
+}
+body{
+    background-color: whitesmoke;
+}
+.sign-in, .sign-up{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 15px;     
+}
+form input{
+    border:2px solid black;
+    height:20px;
+}
+
+#btn-login, #btn-signup{
+    width:100%;
+    height:10%;
+    border: 2px;
+    border-radius:5px;
+    border-color: black;
+    background-color: blue;
+    color: white;
+    margin-top:20px
+}
+
